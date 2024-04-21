@@ -13,13 +13,13 @@ class FabCar extends Contract {
     const fertilizers = [
       {
         fertilizerId: "FERT1",
-        type: "Nitrogen-based",
+        type: "Urea",
         details: "For crop growth",
         owner: "admin",
       },
       {
         fertilizerId: "FERT2",
-        type: "Phosphorus-based",
+        type: "DAP",
         details: "For root development",
         owner: "admin",
       },
@@ -29,13 +29,13 @@ class FabCar extends Contract {
     const orders = [
       {
         farmerId: "FARMER1",
-        orderId: "ORDER1",
+        orderId: "1",
         fertilizerRequested: "FERT1",
         status: "pending",
       },
       {
         farmerId: "FARMER2",
-        orderId: "ORDER2",
+        orderId: "2",
         fertilizerRequested: "FERT2",
         status: "pending",
       },
@@ -206,8 +206,8 @@ class FabCar extends Contract {
   }
 
   async queryAllPendingOrders(ctx) {
-    const startKey = "ORDER0";
-    const endKey = "ORDER999";
+    const startKey = "0";
+    const endKey = "999";
 
     const iterator = await ctx.stub.getStateByRange(startKey, endKey);
 

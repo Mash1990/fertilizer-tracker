@@ -100,7 +100,7 @@ app.post("/api/addfertilizer", async (req, res) => {
       "createFertilizer",
       req.body.fertilizer_id,
       req.body.fertilizer_type,
-      req.body.fertilizer_purpose
+      req.body.fertilizer_manufacturer
     );
     console.log("Fertilizer transaction has been submitted");
 
@@ -250,9 +250,9 @@ app.post("/api/requestChangeOwner", async (req, res) => {
     // Disconnect from the gateway.
     await gateway.disconnect();
 
-    return res
-      .status(200)
-      .json({ message: "Fertilizer owner change requested successfully" });
+    return res.status(200).json({
+      message: "Fertilizer owner change requested successfully",
+    });
   } catch (error) {
     console.error(`Failed to submit transaction: ${error}`);
     return res.status(500).json({ error: error.message });
@@ -343,6 +343,49 @@ app.get("/api/querypendingorders", async (req, res) => {
     return res.status(200).json(pendingOrders);
   } catch (error) {
     console.error(`Failed to query pending orders: ${error}`);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/finalizeOrder", async (req, res) => {
+  try {
+    // Check if the user identity exists in the wallet.
+    const userIdentity = await wallet.exists(req.body.userId);
+    if (!userIdentity) {
+      console.log(
+        `An identity for the user "${req.body.userId}" does not exist in the wallet`
+      );
+      console.log("Run the registerUser.js application before retrying");
+      return res.status(400).json({ error: "User identity not found" });
+    }
+
+    // Create a new gateway for connecting to our peer node.
+    const gateway = new Gateway();
+    await gateway.connect(ccpPath, {
+      wallet,
+      identity: req.body.userId,
+      discovery: { enabled: true, asLocalhost: true },
+    });
+
+    // Get the network (channel) our contract is deployed to.
+    const network = await gateway.getNetwork("mychannel");
+
+    // Get the contract from the network.
+    const contract = network.getContract("fabcar"); // Replace 'fabcar' with your actual contract name
+
+    // Extract order details from the request body.
+    const { orderId } = req.body;
+
+    // Submit the finalizeOrder transaction.
+    await contract.submitTransaction("finalizeOrder", orderId);
+    console.log("Order finalized successfully");
+
+    // Disconnect from the gateway.
+    await gateway.disconnect();
+
+    return res.status(200).json({ message: "Order finalized successfully" });
+  } catch (error) {
+    console.error(`Failed to submit transaction: ${error}`);
     return res.status(500).json({ error: error.message });
   }
 });
