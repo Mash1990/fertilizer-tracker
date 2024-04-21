@@ -2,8 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
 import QrFrame from "../assets/qr-frame.svg";
 import "./QrStyles.css";
+import Modal from 'react-modal';
 
-const QrReader = ({ stopScanning, onScanSuccess }) => {
+Modal.setAppElement('#root') // replace '#root' with the id of the root element of your app
+
+const QrReader = ({ isOpen, onRequestClose }) => {
   const scanner = useRef(null);
   const videoEl = useRef(null);
   const qrBoxEl = useRef(null);
@@ -12,15 +15,13 @@ const QrReader = ({ stopScanning, onScanSuccess }) => {
 
   const handleScanSuccess = (result) => {
     // If the result is already an object, you can directly access its properties
-    
-    onScanSuccess(result);
-    console.log(scannedResult);
+    setScannedResult(result);
     scanner.current.stop();
     if (videoEl.current && videoEl.current.srcObject) {
       videoEl.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setQrOn(false);
-    stopScanning();
+    onRequestClose();
   };
 
   const onScanFail = (err) => {
@@ -60,18 +61,20 @@ const QrReader = ({ stopScanning, onScanSuccess }) => {
   }, [qrOn]);
 
   return (
-    <div className="qr-reader">
-      <video ref={videoEl}></video>
-      <div ref={qrBoxEl} className="qr-box">
-        <img
-          src={QrFrame}
-          alt="Qr Frame"
-          width={256}
-          height={256}
-          className="qr-frame"
-        />
+    <Modal isOpen={isOpen} onRequestClose={onRequestClose}>
+      <div className="qr-reader">
+        <video ref={videoEl}></video>
+        <div ref={qrBoxEl} className="qr-box">
+          <img
+            src={QrFrame}
+            alt="Qr Frame"
+            width={256}
+            height={256}
+            className="qr-frame"
+          />
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 
